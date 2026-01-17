@@ -1,0 +1,31 @@
+{
+  "name": "mastragen-test-proj",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^25.0.9",
+    "mastra": "^1.0.0-beta.15"
+  },
+  "peerDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev": "mastra dev",
+    "build": "mastra build",
+    "start": "mastra start"
+  },
+  "dependencies": {
+    "@mastra/core": "^1.0.0-beta.23",
+    "@mastra/evals": "^1.0.0-beta.5",
+    "@mastra/libsql": "^1.0.0-beta.12",
+    "@mastra/loggers": "^1.0.0-beta.4",
+    "@mastra/memory": "^1.0.0-beta.13",
+    "@mastra/observability": "^1.0.0-beta.12",
+    "zod": "^4"
+  }
+}
