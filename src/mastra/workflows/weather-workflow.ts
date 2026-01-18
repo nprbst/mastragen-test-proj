@@ -86,13 +86,16 @@ const fetchWeather = createStep({
   },
 });
 
+const workflowResultSchema = z.object({
+  forecast: forecastSchema,
+  activities: z.string(),
+});
+
 const planActivities = createStep({
   id: 'plan-activities',
   description: 'Suggests activities based on weather conditions',
   inputSchema: forecastSchema,
-  outputSchema: z.object({
-    activities: z.string(),
-  }),
+  outputSchema: workflowResultSchema,
   execute: async ({ inputData, mastra }) => {
     const forecast = inputData;
 
@@ -162,6 +165,7 @@ const planActivities = createStep({
     }
 
     return {
+      forecast,
       activities: activitiesText,
     };
   },
@@ -172,9 +176,7 @@ const weatherWorkflow = createWorkflow({
   inputSchema: z.object({
     city: z.string().describe('The city to get the weather for'),
   }),
-  outputSchema: z.object({
-    activities: z.string(),
-  }),
+  outputSchema: workflowResultSchema,
 })
   .then(fetchWeather)
   .then(planActivities);

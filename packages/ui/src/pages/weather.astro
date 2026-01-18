@@ -1,0 +1,17 @@
+---
+import Layout from '../layouts/Layout.astro';
+import WeatherWorkflowRunner from '../components/weather/WeatherWorkflowRunner';
+---
+
+<Layout title="Weather Workflow">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-text-primary mb-2">
+      Weather <span class="text-gradient">Workflow</span>
+    </h1>
+    <p class="text-text-secondary">
+      Run the weather workflow to get a forecast and personalized activity suggestions for any city.
+    </p>
+  </div>
+
+  <WeatherWorkflowRunner client:load />
+</Layout>
