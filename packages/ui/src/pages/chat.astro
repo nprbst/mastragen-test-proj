@@ -1,8 +1,11 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Chat from '../components/Chat';
+import Chat from '../components/chat/Chat';
 ---
 <Layout title="Chat - Mastra UI Sandbox">
-  <h1 class="text-3xl font-bold mb-6">Weather Agent Chat</h1>
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-text-primary mb-2">Weather Agent Chat</h1>
+    <p class="text-text-secondary">Ask about weather conditions anywhere in the world</p>
+  </div>
   <Chat client:load agentId="weatherAgent" agentName="Weather Agent" />
 </Layout>
