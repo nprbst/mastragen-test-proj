@@ -1,0 +1,15 @@
+---
+import Layout from '../layouts/Layout.astro';
+import WorkflowRunner from '../components/WorkflowRunner';
+---
+<Layout title="Workflows - Mastra UI Sandbox">
+  <h1 class="text-3xl font-bold mb-6">Weather Workflow</h1>
+  <WorkflowRunner
+    client:load
+    workflowId="weather-workflow"
+    workflowName="Weather Activity Planner"
+    inputFields={[
+      { name: 'city', type: 'string', description: 'City to get weather for' }
+    ]}
+  />
+</Layout>

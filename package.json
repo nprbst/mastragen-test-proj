@@ -3,6 +3,9 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "devDependencies": {
     "@types/bun": "latest",
     "mastra": "^0.18.9"
@@ -15,7 +18,9 @@
   },
   "scripts": {
     "dev": "mastra dev",
+    "dev:ui": "npm run dev -w @mastragen-test-proj/ui",
     "build": "mastra build",
+    "build:ui": "npm run build -w @mastragen-test-proj/ui",
     "start": "mastra start"
   },
   "dependencies": {
