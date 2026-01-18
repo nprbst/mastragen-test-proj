@@ -1,4 +1,18 @@
-const MASTRA_API_URL = import.meta.env.MASTRA_API_URL || 'http://localhost:4111';
+function getMastraApiUrl(): string {
+  // Check for explicitly configured URL (must use PUBLIC_ prefix for client-side access in Astro)
+  if (import.meta.env.PUBLIC_MASTRA_API_URL) {
+    return import.meta.env.PUBLIC_MASTRA_API_URL;
+  }
+  // In browser: use same scheme and host, different port
+  if (typeof window !== 'undefined') {
+    const { protocol, hostname } = window.location;
+    return `${protocol}//${hostname}:4111`;
+  }
+  // SSR fallback
+  return 'http://localhost:4111';
+}
+
+const MASTRA_API_URL = getMastraApiUrl();
 
 export interface Message {
   role: 'user' | 'assistant';
