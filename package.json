@@ -17,7 +17,7 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "dev": "mastra dev",
+    "dev": "OTEL_SDK_DISABLED=true mastra dev",
     "dev:ui": "npm run dev -w @mastragen-test-proj/ui",
     "build": "mastra build",
     "build:ui": "npm run build -w @mastragen-test-proj/ui",
@@ -32,7 +32,14 @@
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/auto-instrumentations-node": "^0.54.0",
     "@opentelemetry/core": "^1.30.0",
+    "@opentelemetry/exporter-trace-otlp-grpc": "^0.57.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.57.0",
+    "@opentelemetry/exporter-trace-otlp-proto": "^0.57.0",
+    "@opentelemetry/resources": "^1.30.0",
     "@opentelemetry/sdk-node": "^0.57.0",
+    "@opentelemetry/sdk-trace-base": "^1.30.0",
+    "@opentelemetry/sdk-trace-node": "^1.30.0",
+    "@opentelemetry/semantic-conventions": "^1.28.0",
     "@types/node": "^25.0.9",
     "zod": "^4"
   }
