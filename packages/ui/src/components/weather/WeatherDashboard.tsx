@@ -11,6 +11,9 @@ import {
   Calendar,
   AlertCircle,
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeSanitize from 'rehype-sanitize';
 import type { WeatherForecast, WeatherWorkflowResult } from '../../lib/mastra-workflow-client';
 
 interface WeatherDashboardProps {
@@ -188,10 +191,48 @@ function ActivitiesCard({ activities }: { activities: string }) {
         <Calendar className="w-5 h-5 text-accent-primary" />
         Suggested Activities
       </h3>
-      <div className="bg-bg-tertiary rounded-lg p-4 overflow-auto max-h-[500px]">
-        <pre className="text-text-primary text-sm whitespace-pre-wrap font-sans leading-relaxed">
-          {activities}
-        </pre>
+      <div className="bg-bg-tertiary rounded-lg p-6 overflow-auto max-h-[600px]">
+        <div className="prose prose-invert prose-sm max-w-none">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeSanitize]}
+            components={{
+              h1: ({ children }) => (
+                <h1 className="text-2xl font-bold text-text-primary mb-4 mt-6 first:mt-0">{children}</h1>
+              ),
+              h2: ({ children }) => (
+                <h2 className="text-xl font-semibold text-text-primary mb-3 mt-5 border-b border-border-color pb-2">
+                  {children}
+                </h2>
+              ),
+              h3: ({ children }) => (
+                <h3 className="text-lg font-medium text-text-primary mb-2 mt-4">{children}</h3>
+              ),
+              p: ({ children }) => <p className="text-text-secondary mb-3 leading-relaxed">{children}</p>,
+              ul: ({ children }) => <ul className="list-disc list-inside mb-3 space-y-1">{children}</ul>,
+              ol: ({ children }) => <ol className="list-decimal list-inside mb-3 space-y-1">{children}</ol>,
+              li: ({ children }) => <li className="text-text-secondary ml-2">{children}</li>,
+              strong: ({ children }) => <strong className="text-text-primary font-semibold">{children}</strong>,
+              em: ({ children }) => <em className="text-accent-primary italic">{children}</em>,
+              code: ({ children }) => (
+                <code className="bg-bg-secondary px-1.5 py-0.5 rounded text-accent-primary font-mono text-sm">
+                  {children}
+                </code>
+              ),
+              pre: ({ children }) => (
+                <pre className="bg-bg-secondary p-3 rounded-lg overflow-x-auto mb-3">{children}</pre>
+              ),
+              blockquote: ({ children }) => (
+                <blockquote className="border-l-4 border-accent-primary pl-4 italic text-text-secondary mb-3">
+                  {children}
+                </blockquote>
+              ),
+              hr: () => <hr className="border-border-color my-4" />,
+            }}
+          >
+            {activities}
+          </ReactMarkdown>
+        </div>
       </div>
     </div>
   );

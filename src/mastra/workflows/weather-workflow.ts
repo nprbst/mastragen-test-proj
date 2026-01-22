@@ -109,46 +109,63 @@ const planActivities = createStep({
     }
 
     const prompt = `Based on the following weather forecast for ${forecast.location}, suggest appropriate activities:
-      ${JSON.stringify(forecast, null, 2)}
-      For each day in the forecast, structure your response exactly as follows:
+${JSON.stringify(forecast, null, 2)}
 
-      📅 [Day, Month Date, Year]
-      ═══════════════════════════
+Generate your response in properly formatted markdown. Structure it as follows:
 
-      🌡️ WEATHER SUMMARY
-      • Conditions: [brief description]
-      • Temperature: [X°C/Y°F to A°C/B°F]
-      • Precipitation: [X% chance]
+# 📅 ${forecast.location} Weather & Activities
 
-      🌅 MORNING ACTIVITIES
-      Outdoor:
-      • [Activity Name] - [Brief description including specific location/route]
-        Best timing: [specific time range]
-        Note: [relevant weather consideration]
+## 🌡️ Weather Summary
 
-      🌞 AFTERNOON ACTIVITIES
-      Outdoor:
-      • [Activity Name] - [Brief description including specific location/route]
-        Best timing: [specific time range]
-        Note: [relevant weather consideration]
+- **Conditions:** [brief description]
+- **Temperature:** ${Math.round(forecast.minTemp)}°C to ${Math.round(forecast.maxTemp)}°C
+- **Precipitation Chance:** ${forecast.precipitationChance}%
 
-      🏠 INDOOR ALTERNATIVES
-      • [Activity Name] - [Brief description including specific venue]
-        Ideal for: [weather condition that would trigger this alternative]
+## 🌅 Morning Activities (6am - 12pm)
 
-      ⚠️ SPECIAL CONSIDERATIONS
-      • [Any relevant weather warnings, UV index, wind conditions, etc.]
+### Outdoor Activities
+- **[Activity Name]** - [Brief description including specific location/route]
+  - Best timing: [specific time range]
+  - Note: [relevant weather consideration]
 
-      Guidelines:
-      - Suggest 2-3 time-specific outdoor activities per day
-      - Include 1-2 indoor backup options
-      - For precipitation >50%, lead with indoor activities
-      - All activities must be specific to the location
-      - Include specific venues, trails, or locations
-      - Consider activity intensity based on temperature
-      - Keep descriptions concise but informative
+### Indoor Alternatives (if needed)
+- **[Activity Name]** - [Brief description including specific venue]
+  - Ideal for: [weather condition]
 
-      Maintain this exact formatting for consistency, using the emoji and section headers as shown.`;
+## 🌞 Afternoon Activities (12pm - 6pm)
+
+### Outdoor Activities
+- **[Activity Name]** - [Brief description including specific location/route]
+  - Best timing: [specific time range]
+  - Note: [relevant weather consideration]
+
+### Indoor Alternatives (if needed)
+- **[Activity Name]** - [Brief description including specific venue]
+  - Ideal for: [weather condition]
+
+## 🌙 Evening Activities (6pm - 10pm)
+
+### Outdoor Activities
+- **[Activity Name]** - [Brief description]
+  - Best timing: [specific time range]
+
+### Indoor Alternatives
+- **[Activity Name]** - [Brief description]
+
+## ⚠️ Special Considerations
+
+- [Any relevant weather warnings, UV index, wind conditions, etc.]
+
+**Guidelines:**
+- Suggest 2-3 time-specific outdoor activities per time period
+- Include 1-2 indoor backup options per period
+- For precipitation >50%, lead with indoor activities
+- All activities must be specific to ${forecast.location}
+- Include specific venues, trails, or locations
+- Consider activity intensity based on temperature
+- Keep descriptions concise but informative
+
+Use proper markdown formatting with headings (# ## ###), bold text (**text**), and bullet lists (- item).`;
 
     const response = await agent.stream([
       {
