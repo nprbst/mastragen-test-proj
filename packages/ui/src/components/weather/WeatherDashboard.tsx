@@ -11,6 +11,8 @@ import {
   Calendar,
   AlertCircle,
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import type { WeatherForecast, WeatherWorkflowResult } from '../../lib/mastra-workflow-client';
 
 interface WeatherDashboardProps {
@@ -189,9 +191,9 @@ function ActivitiesCard({ activities }: { activities: string }) {
         Suggested Activities
       </h3>
       <div className="bg-bg-tertiary rounded-lg p-4 overflow-auto max-h-[500px]">
-        <pre className="text-text-primary text-sm whitespace-pre-wrap font-sans leading-relaxed">
-          {activities}
-        </pre>
+        <div className="prose prose-invert prose-sm max-w-none markdown-content">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{activities}</ReactMarkdown>
+        </div>
       </div>
     </div>
   );
