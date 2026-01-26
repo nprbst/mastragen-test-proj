@@ -1,5 +1,5 @@
-import { createScorer } from '@mastra/core/evals';
 import type { MastraDBMessage } from '@mastra/core/agent';
+import { createScorer } from '@mastra/core/evals';
 
 /**
  * Extract text content from a MastraDBMessage.
@@ -11,7 +11,9 @@ function getTextContent(message: MastraDBMessage): string {
   }
   if (message.content.parts && Array.isArray(message.content.parts)) {
     const textParts = message.content.parts.filter((p) => p.type === 'text');
-    return textParts.length > 0 ? (textParts[textParts.length - 1] as { text: string }).text || '' : '';
+    return textParts.length > 0
+      ? (textParts[textParts.length - 1] as { text: string }).text || ''
+      : '';
   }
   return '';
 }
@@ -26,7 +28,9 @@ export const weatherAccuracyScorer = createScorer({
     const messages = run.output as MastraDBMessage[];
     const assistantMessages = messages?.filter((m) => m.role === 'assistant') || [];
     const output = assistantMessages.map(getTextContent).join(' ').toLowerCase();
-    const hasTemperature = /\d+\s*°|temperature|degrees|\d+\s*celsius|\d+\s*fahrenheit/.test(output);
+    const hasTemperature = /\d+\s*°|temperature|degrees|\d+\s*celsius|\d+\s*fahrenheit/.test(
+      output
+    );
     const hasConditions = /sunny|cloudy|rain|snow|clear|overcast|humid|wind|fog|storm/.test(output);
     const hasLocation = output.length > 0; // Simplified - assume location mentioned if there's output
 

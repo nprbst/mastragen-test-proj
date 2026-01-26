@@ -37,7 +37,7 @@ export const feedbackRoute = registerApiRoute('/feedback', {
     };
 
     if (apiKey) {
-      headers['api_key'] = apiKey;
+      headers.api_key = apiKey;
     }
 
     const annotationPayload = {
@@ -72,7 +72,7 @@ export const feedbackRoute = registerApiRoute('/feedback', {
             error: `Phoenix API error: ${response.statusText}`,
             details: errorText,
           },
-          response.status as 400 | 401 | 403 | 404 | 500,
+          response.status as 400 | 401 | 403 | 404 | 500
         );
       }
 

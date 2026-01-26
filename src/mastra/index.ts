@@ -1,13 +1,18 @@
-import { Mastra } from '@mastra/core/mastra';
-import { PinoLogger } from '@mastra/loggers';
-import { LibSQLStore } from '@mastra/libsql';
-import { Observability, DefaultExporter, CloudExporter, SensitiveDataFilter } from '@mastra/observability';
 import { ArizeExporter } from '@mastra/arize';
+import { Mastra } from '@mastra/core/mastra';
+import { LibSQLStore } from '@mastra/libsql';
+import { PinoLogger } from '@mastra/loggers';
+import {
+  type CloudExporter,
+  DefaultExporter,
+  Observability,
+  SensitiveDataFilter,
+} from '@mastra/observability';
 
-import { weatherAgent, copywriterAgent, editorAgent } from './agents';
-import { contentWorkflow, weatherWorkflow } from './workflows';
-import { weatherAccuracyScorer, answerRelevancyScorer } from './scorers';
+import { copywriterAgent, editorAgent, weatherAgent } from './agents';
 import { feedbackRoute } from './routes/feedback';
+import { answerRelevancyScorer, weatherAccuracyScorer } from './scorers';
+import { contentWorkflow, weatherWorkflow } from './workflows';
 
 // Build exporters list - always include DefaultExporter for Mastra Studio
 const exporters: Array<DefaultExporter | CloudExporter | ArizeExporter> = [

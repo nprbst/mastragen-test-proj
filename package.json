@@ -6,6 +6,7 @@
     "packages/*"
   ],
   "devDependencies": {
+    "@biomejs/biome": "^1.9.0",
     "@types/bun": "latest",
     "@types/node": "^25.0.10",
     "mastra": "^1.0.1"
@@ -22,11 +23,23 @@
     "build": "mastra build",
     "build:ui": "bun run --filter ./packages/ui build",
     "start": "mastra start",
+    "lint": "biome lint src scripts",
+    "lint:fix": "biome lint --write src scripts",
+    "check": "biome check src scripts && tsc --noEmit",
+    "check:fix": "biome check --write src scripts",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "preflight": "bun run check && bun run test",
+    "preflight:quick": "bun run check",
+    "prepare": "[ -d .git ] && mkdir -p .git/hooks && cp scripts/hooks/pre-push .git/hooks/pre-push && chmod +x .git/hooks/pre-push || true",
     "phoenix:up": "docker start arize-phoenix 2>/dev/null || docker run --pull=always -d --name arize-phoenix -p 6006:6006 -e PHOENIX_SQL_DATABASE_URL=sqlite:///:memory: arizephoenix/phoenix:latest",
-    "phoenix:down": "docker stop arize-phoenix"
+    "phoenix:down": "docker stop arize-phoenix",
+    "prompts:seed": "bun run scripts/seed-prompts.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.23",
+    "@arizeai/openinference-core": "^2.0.5",
+    "@arizeai/phoenix-client": "^5.8.0",
     "@mastra/arize": "^1.0.0",
     "@mastra/core": "^1.0.4",
     "@mastra/evals": "^1.0.0",
@@ -34,6 +47,7 @@
     "@mastra/loggers": "^1.0.0",
     "@mastra/memory": "^1.0.0",
     "@mastra/observability": "^1.0.0",
+    "@opentelemetry/api": "^1.9.0",
     "zod": "^4"
   }
 }

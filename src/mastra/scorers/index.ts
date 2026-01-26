@@ -1,5 +1,5 @@
-import { createAnswerRelevancyScorer } from '@mastra/evals/scorers/prebuilt';
 import { anthropic } from '@ai-sdk/anthropic';
+import { createAnswerRelevancyScorer } from '@mastra/evals/scorers/prebuilt';
 import { weatherAccuracyScorer } from './weather-accuracy-scorer';
 
 // Built-in LLM-based scorer using Anthropic

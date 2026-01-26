@@ -1,6 +1,6 @@
 import { Agent } from '@mastra/core/agent';
+import { answerRelevancyScorer, weatherAccuracyScorer } from '../scorers';
 import { weatherTool } from '../tools/weather-tool';
-import { weatherAccuracyScorer, answerRelevancyScorer } from '../scorers';
 
 export const weatherAgent = new Agent({
   id: 'weather-agent',
