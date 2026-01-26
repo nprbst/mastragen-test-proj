@@ -6,13 +6,17 @@
   "scripts": {
     "dev": "astro dev --host 0.0.0.0 --port 4321",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "check": "astro check",
+    "lint": "biome check src"
   },
   "dependencies": {
-    "astro": "^5.0.0",
+    "@assistant-ui/react": "^0.10.0",
     "@astrojs/react": "^4.0.0",
     "@astrojs/tailwind": "^6.0.0",
-    "@assistant-ui/react": "^0.10.0",
+    "@mastra/client-js": "^1.0.1",
+    "@mastra/react": "^0.1.1",
+    "astro": "^5.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "lucide-react": "^0.468.0",
@@ -21,6 +25,8 @@
     "tailwindcss": "^3.4.0"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.0",
+    "@biomejs/biome": "^1.9.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "typescript": "^5.9.0"

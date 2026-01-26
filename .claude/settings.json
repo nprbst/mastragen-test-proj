@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bunx tsc:*)",
+      "mcp__mastra__mastraDocs",
+      "mcp__phoenix-docs__SearchPhoenix",
+      "mcp__mastra__getMastraExportDetails",
+      "mcp__mastra__searchMastraDocs",
+      "mcp__mastra__getMastraExports",
+      "Bash(bun run check:*)",
+      "WebFetch(domain:docs.arize.com)",
+      "mcp__mastra__readMastraDocs"
+    ]
+  }
+}

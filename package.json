@@ -1,14 +1,15 @@
 {
   "name": "mastragen-test-proj",
-  "module": "index.ts",
   "type": "module",
   "private": true,
   "workspaces": [
     "packages/*"
   ],
   "devDependencies": {
+    "@biomejs/biome": "^1.9.0",
     "@types/bun": "latest",
-    "mastra": "^0.18.9"
+    "@types/node": "^25.0.10",
+    "mastra": "^1.0.1"
   },
   "peerDependencies": {
     "typescript": "^5.9.3"
@@ -17,30 +18,36 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "dev": "OTEL_SDK_DISABLED=true mastra dev",
-    "dev:ui": "npm run dev -w @mastragen-test-proj/ui",
+    "dev": "mastra dev",
+    "dev:ui": "bun run --filter ./packages/ui dev",
     "build": "mastra build",
-    "build:ui": "npm run build -w @mastragen-test-proj/ui",
-    "start": "mastra start"
+    "build:ui": "bun run --filter ./packages/ui build",
+    "start": "mastra start",
+    "lint": "biome lint src scripts",
+    "lint:fix": "biome lint --write src scripts",
+    "check": "biome check src scripts && tsc --noEmit",
+    "check:fix": "biome check --write src scripts",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "preflight": "bun run check && bun run test",
+    "preflight:quick": "bun run check",
+    "prepare": "[ -d .git ] && mkdir -p .git/hooks && cp scripts/hooks/pre-push .git/hooks/pre-push && chmod +x .git/hooks/pre-push || true",
+    "phoenix:up": "docker start arize-phoenix 2>/dev/null || docker run --pull=always -d --name arize-phoenix -p 6006:6006 -e PHOENIX_SQL_DATABASE_URL=sqlite:///:memory: arizephoenix/phoenix:latest",
+    "phoenix:seed": "bun run scripts/seed-prompts.ts",
+    "phoenix:down": "docker stop arize-phoenix"
   },
   "dependencies": {
-    "@mastra/core": "^0.24.9",
-    "@mastra/evals": "^0.14.4",
-    "@mastra/libsql": "^0.16.4",
-    "@mastra/loggers": "^0.10.19",
-    "@mastra/memory": "^0.15.13",
+    "@ai-sdk/anthropic": "^3.0.23",
+    "@arizeai/openinference-core": "^2.0.5",
+    "@arizeai/phoenix-client": "^5.8.0",
+    "@mastra/arize": "^1.0.0",
+    "@mastra/core": "^1.0.4",
+    "@mastra/evals": "^1.0.0",
+    "@mastra/libsql": "^1.0.0",
+    "@mastra/loggers": "^1.0.0",
+    "@mastra/memory": "^1.0.0",
+    "@mastra/observability": "^1.0.0",
     "@opentelemetry/api": "^1.9.0",
-    "@opentelemetry/auto-instrumentations-node": "^0.56.0",
-    "@opentelemetry/core": "^2.0.0",
-    "@opentelemetry/exporter-trace-otlp-grpc": "^0.200.0",
-    "@opentelemetry/exporter-trace-otlp-http": "^0.200.0",
-    "@opentelemetry/exporter-trace-otlp-proto": "^0.200.0",
-    "@opentelemetry/resources": "^2.0.0",
-    "@opentelemetry/sdk-node": "^0.200.0",
-    "@opentelemetry/sdk-trace-base": "^2.0.0",
-    "@opentelemetry/sdk-trace-node": "^2.0.0",
-    "@opentelemetry/semantic-conventions": "^1.28.0",
-    "@types/node": "^25.0.9",
     "zod": "^4"
   }
 }

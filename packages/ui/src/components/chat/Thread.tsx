@@ -3,9 +3,11 @@ import {
   ThreadPrimitive,
   ComposerPrimitive,
   MessagePrimitive,
-  useThreadRuntime,
+  useMessage,
 } from '@assistant-ui/react';
 import { Send, Bot, User, Loader2, Sparkles } from 'lucide-react';
+import { FeedbackButton } from '../feedback';
+import { useLatestTraceId } from '../../lib/trace-context';
 
 interface ThreadProps {
   agentName?: string;
@@ -48,9 +50,6 @@ function ThreadHeader({ agentName }: { agentName: string }) {
 }
 
 function ThreadComposer() {
-  const runtime = useThreadRuntime();
-  const isRunning = runtime.getState().isRunning;
-
   return (
     <ComposerPrimitive.Root className="p-4 border-t border-border-color bg-bg-secondary">
       <div className="flex gap-3">
@@ -59,8 +58,8 @@ function ThreadComposer() {
           className="input-primary flex-1"
           autoFocus
         />
-        <ComposerPrimitive.Send disabled={isRunning} className="btn-primary px-5">
-          {isRunning ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+        <ComposerPrimitive.Send className="btn-primary px-5">
+          <Send className="w-5 h-5" />
         </ComposerPrimitive.Send>
       </div>
       <p className="text-text-muted text-xs mt-2">Press Enter to send, Shift+Enter for new line</p>
@@ -88,6 +87,10 @@ function UserMessage() {
 }
 
 function AssistantMessage() {
+  const message = useMessage();
+  const isComplete = message?.status?.type === 'complete';
+  const traceId = useLatestTraceId();
+
   return (
     <MessagePrimitive.Root className="flex justify-start animate-fade-in-up">
       <div className="flex gap-3 max-w-[85%]">
@@ -103,6 +106,11 @@ function AssistantMessage() {
               },
             }}
           />
+          {isComplete && traceId && (
+            <div className="mt-3 pt-3 border-t border-border-color">
+              <FeedbackButton traceId={traceId} />
+            </div>
+          )}
         </div>
       </div>
     </MessagePrimitive.Root>
@@ -112,11 +120,17 @@ function AssistantMessage() {
 function ToolFallbackUI({
   toolName,
   args,
+  result,
 }: {
   toolName: string;
   args: Record<string, unknown>;
   result?: unknown;
 }) {
+  // Hide tool indicator once it has completed (result exists)
+  if (result !== undefined) {
+    return null;
+  }
+
   const location = typeof args?.location === 'string' ? args.location : null;
   return (
     <div className="flex items-center gap-2 text-text-secondary text-sm py-2">

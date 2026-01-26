@@ -1,0 +1,11 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ContentWorkflowRunner from '../components/content/ContentWorkflowRunner';
+---
+<Layout title="Content Workflow - Mastra UI Sandbox">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-text-primary mb-2">Content Workflow</h1>
+    <p class="text-text-secondary">Generate blog content using a multi-agent workflow (Copywriter → Editor)</p>
+  </div>
+  <ContentWorkflowRunner client:load />
+</Layout>
