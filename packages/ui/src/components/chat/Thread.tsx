@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useId } from 'react';
 import {
   ThreadPrimitive,
   ComposerPrimitive,
   MessagePrimitive,
   useThreadRuntime,
+  useMessage,
 } from '@assistant-ui/react';
 import { Send, Bot, User, Loader2, Sparkles } from 'lucide-react';
+import { FeedbackButton } from '../feedback';
 
 interface ThreadProps {
   agentName?: string;
@@ -88,6 +90,11 @@ function UserMessage() {
 }
 
 function AssistantMessage() {
+  const message = useMessage();
+  const fallbackId = useId();
+  const messageId = message?.id ?? fallbackId;
+  const isComplete = message?.status?.type === 'complete';
+
   return (
     <MessagePrimitive.Root className="flex justify-start animate-fade-in-up">
       <div className="flex gap-3 max-w-[85%]">
@@ -103,6 +110,11 @@ function AssistantMessage() {
               },
             }}
           />
+          {isComplete && (
+            <div className="mt-3 pt-3 border-t border-border-color">
+              <FeedbackButton spanId={messageId} />
+            </div>
+          )}
         </div>
       </div>
     </MessagePrimitive.Root>

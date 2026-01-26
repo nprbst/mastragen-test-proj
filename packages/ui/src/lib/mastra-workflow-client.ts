@@ -27,6 +27,7 @@ export interface WeatherWorkflowResult {
 
 export interface ContentWorkflowResult {
   finalCopy: string;
+  runId: string;
 }
 
 interface CreateRunResponse {
@@ -146,13 +147,13 @@ export async function runContentWorkflow(topic: string): Promise<ContentWorkflow
       throw new Error(`Failed to get workflow status: ${statusResponse.statusText}`);
     }
 
-    const run = (await statusResponse.json()) as WorkflowRunResponse<ContentWorkflowResult>;
+    const run = (await statusResponse.json()) as WorkflowRunResponse<Omit<ContentWorkflowResult, 'runId'>>;
 
     if (run.status === 'success') {
       if (!run.result) {
         throw new Error('Workflow completed but no result found');
       }
-      return run.result;
+      return { ...run.result, runId };
     }
 
     if (run.status === 'failed') {

@@ -26,8 +26,10 @@
     "phoenix:down": "docker stop arize-phoenix"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.23",
     "@mastra/arize": "^1.0.0",
     "@mastra/core": "^1.0.4",
+    "@mastra/evals": "^1.0.0",
     "@mastra/libsql": "^1.0.0",
     "@mastra/loggers": "^1.0.0",
     "@mastra/memory": "^1.0.0",

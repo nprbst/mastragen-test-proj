@@ -1,5 +1,6 @@
 import { Agent } from '@mastra/core/agent';
 import { weatherTool } from '../tools/weather-tool';
+import { weatherAccuracyScorer, answerRelevancyScorer } from '../scorers';
 
 export const weatherAgent = new Agent({
   id: 'weather-agent',
@@ -16,4 +17,14 @@ Use the weatherTool to fetch current weather data.`,
     id: 'anthropic/claude-sonnet-4-20250514',
   },
   tools: { weatherTool },
+  scorers: {
+    weatherAccuracy: {
+      scorer: weatherAccuracyScorer,
+      sampling: { type: 'ratio', rate: 1 }, // Score 100% of responses
+    },
+    answerRelevancy: {
+      scorer: answerRelevancyScorer,
+      sampling: { type: 'ratio', rate: 0.5 }, // Score 50% (LLM cost control)
+    },
+  },
 });

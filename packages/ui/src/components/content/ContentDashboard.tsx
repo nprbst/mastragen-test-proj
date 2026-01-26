@@ -1,6 +1,7 @@
 import React from 'react';
 import { AlertCircle, PenLine, CheckCircle } from 'lucide-react';
 import type { ContentWorkflowResult } from '../../lib/mastra-workflow-client';
+import { FeedbackButton } from '../feedback';
 
 interface ContentDashboardProps {
   result: ContentWorkflowResult | null;
@@ -68,6 +69,11 @@ export function ContentDashboard({ result, isLoading, error }: ContentDashboardP
         <div className="bg-bg-tertiary rounded-lg p-6 text-text-primary whitespace-pre-wrap leading-relaxed">
           {result.finalCopy}
         </div>
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-border-color">
+        <p className="text-text-muted text-xs mb-2">Was this content helpful?</p>
+        <FeedbackButton spanId={result.runId} />
       </div>
     </div>
   );

@@ -6,6 +6,8 @@ import { ArizeExporter } from '@mastra/arize';
 
 import { weatherAgent, copywriterAgent, editorAgent } from './agents';
 import { contentWorkflow, weatherWorkflow } from './workflows';
+import { weatherAccuracyScorer, answerRelevancyScorer } from './scorers';
+import { feedbackRoute } from './routes/feedback';
 
 // Build exporters list - always include DefaultExporter for Mastra Studio
 const exporters: Array<DefaultExporter | CloudExporter | ArizeExporter> = [
@@ -21,6 +23,10 @@ if (process.env.PHOENIX_ENABLED === 'true') {
 export const mastra = new Mastra({
   agents: { weatherAgent, copywriterAgent, editorAgent },
   workflows: { contentWorkflow, weatherWorkflow },
+  scorers: { weatherAccuracyScorer, answerRelevancyScorer },
+  server: {
+    apiRoutes: [feedbackRoute],
+  },
   storage: new LibSQLStore({
     id: 'mastra-storage',
     url: process.env.MASTRA_DB_URL || ':memory:',
