@@ -14,14 +14,26 @@
  *   PHOENIX_PROMPTS_TAG - Tag to apply to new versions (default: production)
  */
 
-import { createPrompt, getPrompt, promptVersion } from '@arizeai/phoenix-client/prompts';
-import { PROMPTS, type PromptName } from '../src/mastra/prompts';
+import { createPrompt, promptVersion } from '@arizeai/phoenix-client/prompts';
+import { PROMPTS } from '../src/mastra/prompts';
 
-const TAG = process.env.PHOENIX_PROMPTS_TAG || 'production';
+const TAG = process.env.PHOENIX_PROMPTS_TAG || 'dev';
+const PHOENIX_HOST = process.env.PHOENIX_HOST || 'http://localhost:6006';
 
 interface PromptEntry {
   name: string;
   content: string;
+}
+
+interface PhoenixPrompt {
+  template?: {
+    type: string;
+    template?: string;
+    messages?: Array<{
+      role: string;
+      content: string | Array<{ type: string; text?: string }>;
+    }>;
+  };
 }
 
 function loadPrompts(): PromptEntry[] {
@@ -31,42 +43,77 @@ function loadPrompts(): PromptEntry[] {
   }));
 }
 
-async function seedPrompt(prompt: PromptEntry): Promise<void> {
-  console.log(`\nProcessing prompt: ${prompt.name}`);
+function extractErrorDetails(error: unknown): string {
+  if (error instanceof Error) {
+    const message = error.message;
+    // Extract status code and URL from Phoenix client errors
+    const match = message.match(/(\S+): (\d+) (.+)/);
+    if (match) {
+      const [, url, status, statusText] = match;
+      return `${status} ${statusText} (${url})`;
+    }
+    return message;
+  }
+  return String(error);
+}
 
-  // Check if prompt already exists
-  let existingPrompt: Awaited<ReturnType<typeof getPrompt>> | null;
+async function checkPromptExists(name: string): Promise<PhoenixPrompt | null> {
   try {
-    existingPrompt = await getPrompt({ prompt: { name: prompt.name } });
-  } catch {
-    // Prompt doesn't exist yet
-    existingPrompt = null;
+    const response = await fetch(`${PHOENIX_HOST}/v1/prompts/${name}/latest`);
+    if (response.status === 404) {
+      return null;
+    }
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(`${response.status} ${response.statusText}: ${body}`);
+    }
+    const data = (await response.json()) as { data: PhoenixPrompt };
+    return data.data;
+  } catch (error) {
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new Error(`Cannot connect to Phoenix at ${PHOENIX_HOST}`);
+    }
+    throw error;
+  }
+}
+
+function extractTemplateText(prompt: PhoenixPrompt | null): string {
+  if (!prompt?.template) return '';
+
+  const template = prompt.template;
+
+  // Handle string template format
+  if (template.type === 'string' && template.template) {
+    return template.template;
   }
 
-  // Extract template text from existing prompt for comparison
-  let existingTemplate = '';
-  if (existingPrompt?.template) {
-    const template = existingPrompt.template;
-
-    // Handle string template format
-    if (template.type === 'string') {
-      existingTemplate = template.template;
-    }
-    // Handle chat template format (messages array)
-    else if (template.type === 'chat' && template.messages) {
-      const systemMsg = template.messages.find((m) => m.role === 'system');
-      if (systemMsg?.content) {
-        if (typeof systemMsg.content === 'string') {
-          existingTemplate = systemMsg.content;
-        } else if (Array.isArray(systemMsg.content)) {
-          existingTemplate = systemMsg.content
-            .filter((c): c is { type: 'text'; text: string } => c.type === 'text')
-            .map((c) => c.text)
-            .join('\n');
-        }
+  // Handle chat template format (messages array)
+  if (template.type === 'chat' && template.messages) {
+    const systemMsg = template.messages.find((m) => m.role === 'system');
+    if (systemMsg?.content) {
+      if (typeof systemMsg.content === 'string') {
+        return systemMsg.content;
+      }
+      if (Array.isArray(systemMsg.content)) {
+        return systemMsg.content
+          .filter((c): c is { type: 'text'; text: string } => c.type === 'text' && 'text' in c)
+          .map((c) => c.text)
+          .join('\n');
       }
     }
   }
+
+  return '';
+}
+
+async function seedPrompt(prompt: PromptEntry): Promise<void> {
+  console.log(`\nProcessing prompt: ${prompt.name}`);
+
+  // Check if prompt already exists using direct fetch (avoids noisy error logging)
+  const existingPrompt = await checkPromptExists(prompt.name);
+
+  // Extract template text from existing prompt for comparison
+  const existingTemplate = extractTemplateText(existingPrompt);
 
   // Check if content has changed
   if (existingTemplate.trim() === prompt.content) {
@@ -75,47 +122,60 @@ async function seedPrompt(prompt: PromptEntry): Promise<void> {
   }
 
   // Create new version
-  const newVersion = await createPrompt({
-    name: prompt.name,
-    version: promptVersion({
-      description: existingPrompt
-        ? `Updated from local file (tag: ${TAG})`
-        : `Initial version from local file (tag: ${TAG})`,
-      modelProvider: 'ANTHROPIC',
-      modelName: 'claude-sonnet-4-20250514',
-      template: [
-        {
-          role: 'system',
-          content: prompt.content,
-        },
-      ],
-      templateFormat: 'MUSTACHE',
-    }),
-  });
+  try {
+    const newVersion = await createPrompt({
+      name: prompt.name,
+      version: promptVersion({
+        description: existingPrompt
+          ? `Updated from local file (tag: ${TAG})`
+          : `Initial version from local file (tag: ${TAG})`,
+        modelProvider: 'ANTHROPIC',
+        modelName: 'claude-sonnet-4-20250514',
+        template: [
+          {
+            role: 'system',
+            content: [{ type: 'text', text: prompt.content }],
+          },
+        ],
+        templateFormat: 'MUSTACHE',
+        invocationParameters: { max_tokens: 4096 },
+      }),
+    });
 
-  console.log(`  ✓ Created version: ${newVersion.id}`);
-
-  // Note: Tagging would require additional API call if supported
-  // For now, we include the tag in the description
+    console.log(`  ✓ Created version: ${newVersion.id}`);
+  } catch (error) {
+    const details = extractErrorDetails(error);
+    throw new Error(`Failed to create prompt: ${details}`);
+  }
 }
 
 async function main() {
   console.log('Phoenix Prompt Seeder');
   console.log('=====================');
+  console.log(`Host: ${PHOENIX_HOST}`);
   console.log(`Tag: ${TAG}`);
 
   const prompts = loadPrompts();
   console.log(`\nFound ${prompts.length} prompt(s)`);
 
+  let failed = 0;
   for (const prompt of prompts) {
     try {
       await seedPrompt(prompt);
     } catch (error) {
-      console.error(`  ✗ Failed to seed "${prompt.name}":`, error);
+      failed++;
+      const details = extractErrorDetails(error);
+      console.error(`  ✗ ${details}`);
     }
   }
 
-  console.log('\nDone!');
+  console.log(`\nDone! ${prompts.length - failed}/${prompts.length} succeeded`);
+  if (failed > 0) {
+    process.exit(1);
+  }
 }
 
-main().catch(console.error);
+main().catch((error) => {
+  console.error('Fatal error:', extractErrorDetails(error));
+  process.exit(1);
+});

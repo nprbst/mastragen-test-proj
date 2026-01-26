@@ -33,8 +33,8 @@
     "preflight:quick": "bun run check",
     "prepare": "[ -d .git ] && mkdir -p .git/hooks && cp scripts/hooks/pre-push .git/hooks/pre-push && chmod +x .git/hooks/pre-push || true",
     "phoenix:up": "docker start arize-phoenix 2>/dev/null || docker run --pull=always -d --name arize-phoenix -p 6006:6006 -e PHOENIX_SQL_DATABASE_URL=sqlite:///:memory: arizephoenix/phoenix:latest",
-    "phoenix:down": "docker stop arize-phoenix",
-    "prompts:seed": "bun run scripts/seed-prompts.ts"
+    "phoenix:seed": "bun run scripts/seed-prompts.ts",
+    "phoenix:down": "docker stop arize-phoenix"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.23",
