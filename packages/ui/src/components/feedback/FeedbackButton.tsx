@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ThumbsUp, ThumbsDown, MessageSquare, Loader2, Check } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Loader2, Check } from 'lucide-react';
 
 function getMastraApiUrl(): string {
   if (typeof import.meta !== 'undefined' && import.meta.env?.PUBLIC_MASTRA_API_URL) {
@@ -13,12 +13,12 @@ function getMastraApiUrl(): string {
 }
 
 interface FeedbackButtonProps {
-  spanId: string;
+  traceId: string;
   onFeedbackSubmitted?: () => void;
 }
 
 interface FeedbackPayload {
-  spanId: string;
+  traceId: string;
   label: 'thumbs_up' | 'thumbs_down';
   score: number;
   explanation?: string;
@@ -38,26 +38,27 @@ async function submitFeedback(payload: FeedbackPayload): Promise<void> {
   }
 }
 
-export function FeedbackButton({ spanId, onFeedbackSubmitted }: FeedbackButtonProps) {
-  const [showComment, setShowComment] = useState(false);
+export function FeedbackButton({ traceId, onFeedbackSubmitted }: FeedbackButtonProps) {
+  const [selectedRating, setSelectedRating] = useState<'up' | 'down' | null>(null);
   const [comment, setComment] = useState('');
-  const [submitted, setSubmitted] = useState<'up' | 'down' | null>(null);
+  const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleFeedback = async (isPositive: boolean) => {
+  const handleSubmit = async () => {
+    if (!selectedRating) return;
+
     setIsSubmitting(true);
     setError(null);
 
     try {
       await submitFeedback({
-        spanId,
-        label: isPositive ? 'thumbs_up' : 'thumbs_down',
-        score: isPositive ? 1 : 0,
+        traceId,
+        label: selectedRating === 'up' ? 'thumbs_up' : 'thumbs_down',
+        score: selectedRating === 'up' ? 1 : 0,
         explanation: comment || undefined,
       });
-      setSubmitted(isPositive ? 'up' : 'down');
-      setShowComment(false);
+      setSubmitted(true);
       onFeedbackSubmitted?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit feedback');
@@ -77,46 +78,51 @@ export function FeedbackButton({ spanId, onFeedbackSubmitted }: FeedbackButtonPr
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-text-muted">Rate this response:</span>
         <button
-          onClick={() => handleFeedback(true)}
+          onClick={() => setSelectedRating('up')}
           disabled={isSubmitting}
-          className="p-1.5 rounded hover:bg-bg-tertiary transition-colors disabled:opacity-50"
+          className={`p-1.5 rounded transition-colors disabled:opacity-50 ${
+            selectedRating === 'up'
+              ? 'bg-accent-success/20 text-accent-success'
+              : 'hover:bg-bg-tertiary text-text-muted hover:text-accent-success'
+          }`}
           title="Helpful"
         >
-          {isSubmitting ? (
-            <Loader2 className="w-4 h-4 animate-spin text-text-muted" />
-          ) : (
-            <ThumbsUp className="w-4 h-4 text-text-muted hover:text-accent-success" />
-          )}
+          <ThumbsUp className="w-4 h-4" />
         </button>
         <button
-          onClick={() => handleFeedback(false)}
+          onClick={() => setSelectedRating('down')}
           disabled={isSubmitting}
-          className="p-1.5 rounded hover:bg-bg-tertiary transition-colors disabled:opacity-50"
+          className={`p-1.5 rounded transition-colors disabled:opacity-50 ${
+            selectedRating === 'down'
+              ? 'bg-accent-error/20 text-accent-error'
+              : 'hover:bg-bg-tertiary text-text-muted hover:text-accent-error'
+          }`}
           title="Not helpful"
         >
-          <ThumbsDown className="w-4 h-4 text-text-muted hover:text-accent-error" />
-        </button>
-        <button
-          onClick={() => setShowComment(!showComment)}
-          disabled={isSubmitting}
-          className="p-1.5 rounded hover:bg-bg-tertiary transition-colors disabled:opacity-50"
-          title="Add comment"
-        >
-          <MessageSquare className="w-4 h-4 text-text-muted hover:text-accent-primary" />
+          <ThumbsDown className="w-4 h-4" />
         </button>
       </div>
 
-      {showComment && (
+      {selectedRating && (
         <div className="flex gap-2">
           <input
             type="text"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="Add feedback comment..."
+            onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+            placeholder="Add comment (optional)..."
             className="flex-1 px-3 py-1.5 text-sm bg-bg-tertiary rounded border border-border-color text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent-primary"
           />
+          <button
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="px-3 py-1.5 text-sm bg-accent-primary text-white rounded hover:bg-accent-primary/80 transition-colors disabled:opacity-50"
+          >
+            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Send'}
+          </button>
         </div>
       )}
 

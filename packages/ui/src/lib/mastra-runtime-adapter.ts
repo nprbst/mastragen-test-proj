@@ -13,10 +13,11 @@ const getMastraApiUrl = (): string => {
 
 export interface MastraAdapterOptions {
   agentId: string;
+  onTraceId?: (traceId: string) => void;
 }
 
 export function createMastraAdapter(options: MastraAdapterOptions): ChatModelAdapter {
-  const { agentId } = options;
+  const { agentId, onTraceId } = options;
 
   return {
     async *run({ messages, abortSignal }) {
@@ -30,7 +31,7 @@ export function createMastraAdapter(options: MastraAdapterOptions): ChatModelAda
           .join('\n'),
       }));
 
-      const response = await fetch(`${apiUrl}/api/agents/${agentId}/stream`, {
+      const response = await fetch(`${apiUrl}/agents/${agentId}/stream-with-trace`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: formattedMessages }),
@@ -49,6 +50,7 @@ export function createMastraAdapter(options: MastraAdapterOptions): ChatModelAda
       const decoder = new TextDecoder();
       let accumulatedText = '';
       let toolCalls: ToolCall[] = [];
+      let traceIdCaptured = false;
 
       try {
         while (true) {
@@ -56,6 +58,16 @@ export function createMastraAdapter(options: MastraAdapterOptions): ChatModelAda
           if (done) break;
 
           const chunk = decoder.decode(value, { stream: true });
+
+          // Check for trace-id event in the stream
+          if (!traceIdCaptured && onTraceId) {
+            const traceIdMatch = chunk.match(/"type":"trace-id","traceId":"([^"]+)"/);
+            if (traceIdMatch) {
+              onTraceId(traceIdMatch[1]);
+              traceIdCaptured = true;
+            }
+          }
+
           const parseResult = parseMastraChunk(chunk, accumulatedText, toolCalls);
           accumulatedText = parseResult.text;
           toolCalls = parseResult.toolCalls;
@@ -84,56 +96,61 @@ function parseMastraChunk(
   let text = currentText;
   const toolCalls = [...currentToolCalls];
 
-  // Mastra streams data in various formats depending on configuration
-  // Try to detect and parse structured tool call data
   const lines = chunk.split('\n').filter(Boolean);
 
   for (const line of lines) {
     // Check for SSE-style data prefix
     const dataLine = line.startsWith('data: ') ? line.slice(6) : line;
 
-    // Try to parse as JSON (tool call or structured response)
+    // Skip [DONE] marker
+    if (dataLine === '[DONE]') {
+      continue;
+    }
+
+    // Try to parse as JSON
     try {
       const parsed = JSON.parse(dataLine);
 
-      // Handle tool call format
-      if (parsed.type === 'tool-call' || parsed.toolCall) {
-        const tc = parsed.toolCall || parsed;
+      // Skip trace-id event (handled separately)
+      if (parsed.type === 'trace-id') {
+        continue;
+      }
+
+      // Mastra stream format: data is nested in payload
+      const payload = parsed.payload;
+
+      // Handle text delta - Mastra format: {"type":"text-delta","payload":{"text":"..."}}
+      if (parsed.type === 'text-delta' && payload?.text) {
+        text += payload.text;
+        continue;
+      }
+
+      // Handle tool call - Mastra format: {"type":"tool-call","payload":{"toolCallId","toolName","args"}}
+      if (parsed.type === 'tool-call' && payload) {
         toolCalls.push({
-          id: tc.id || tc.toolCallId || crypto.randomUUID(),
-          toolName: tc.toolName || tc.name,
-          args: tc.args || tc.input || {},
-          result: tc.result,
+          id: payload.toolCallId || payload.id || crypto.randomUUID(),
+          toolName: payload.toolName || payload.name,
+          args: payload.args || payload.input || {},
         });
         continue;
       }
 
-      // Handle tool result format
-      if (parsed.type === 'tool-result' && parsed.toolCallId) {
-        const existingCallIndex = toolCalls.findIndex((tc) => tc.id === parsed.toolCallId);
+      // Handle tool result - Mastra format: {"type":"tool-result","payload":{"toolCallId","result"}}
+      if (parsed.type === 'tool-result' && payload?.toolCallId) {
+        const existingCallIndex = toolCalls.findIndex((tc) => tc.id === payload.toolCallId);
         if (existingCallIndex >= 0) {
           toolCalls[existingCallIndex] = {
             ...toolCalls[existingCallIndex],
-            result: parsed.result,
+            result: payload.result,
           };
         }
         continue;
       }
 
-      // Handle text delta format
-      if (parsed.type === 'text-delta' || parsed.textDelta) {
-        text += parsed.textDelta || parsed.text || '';
-        continue;
-      }
-
-      // If it's just text content
-      if (typeof parsed.text === 'string') {
-        text += parsed.text;
-        continue;
-      }
+      // Skip other event types (start, step-start, step-finish, finish, etc.)
+      // These don't contain content to display
     } catch {
-      // Not JSON, treat as plain text
-      text += dataLine;
+      // Not JSON - skip non-JSON lines
     }
   }
 

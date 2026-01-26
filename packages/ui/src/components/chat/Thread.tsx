@@ -1,4 +1,4 @@
-import React, { useId } from 'react';
+import React from 'react';
 import {
   ThreadPrimitive,
   ComposerPrimitive,
@@ -7,6 +7,7 @@ import {
 } from '@assistant-ui/react';
 import { Send, Bot, User, Loader2, Sparkles } from 'lucide-react';
 import { FeedbackButton } from '../feedback';
+import { useLatestTraceId } from '../../lib/trace-context';
 
 interface ThreadProps {
   agentName?: string;
@@ -87,9 +88,8 @@ function UserMessage() {
 
 function AssistantMessage() {
   const message = useMessage();
-  const fallbackId = useId();
-  const messageId = message?.id ?? fallbackId;
   const isComplete = message?.status?.type === 'complete';
+  const traceId = useLatestTraceId();
 
   return (
     <MessagePrimitive.Root className="flex justify-start animate-fade-in-up">
@@ -106,9 +106,9 @@ function AssistantMessage() {
               },
             }}
           />
-          {isComplete && (
+          {isComplete && traceId && (
             <div className="mt-3 pt-3 border-t border-border-color">
-              <FeedbackButton spanId={messageId} />
+              <FeedbackButton traceId={traceId} />
             </div>
           )}
         </div>
@@ -120,11 +120,17 @@ function AssistantMessage() {
 function ToolFallbackUI({
   toolName,
   args,
+  result,
 }: {
   toolName: string;
   args: Record<string, unknown>;
   result?: unknown;
 }) {
+  // Hide tool indicator once it has completed (result exists)
+  if (result !== undefined) {
+    return null;
+  }
+
   const location = typeof args?.location === 'string' ? args.location : null;
   return (
     <div className="flex items-center gap-2 text-text-secondary text-sm py-2">

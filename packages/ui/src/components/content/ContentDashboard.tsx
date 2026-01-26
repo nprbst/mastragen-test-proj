@@ -71,10 +71,12 @@ export function ContentDashboard({ result, isLoading, error }: ContentDashboardP
         </div>
       </div>
 
-      <div className="mt-4 pt-4 border-t border-border-color">
-        <p className="text-text-muted text-xs mb-2">Was this content helpful?</p>
-        <FeedbackButton spanId={result.runId} />
-      </div>
+      {result.traceId && (
+        <div className="mt-4 pt-4 border-t border-border-color">
+          <p className="text-text-muted text-xs mb-2">Was this content helpful?</p>
+          <FeedbackButton traceId={result.traceId} />
+        </div>
+      )}
     </div>
   );
 }

@@ -11,6 +11,18 @@ function getMastraApiUrl(): string {
 
 const MASTRA_API_URL = getMastraApiUrl();
 
+async function getTraceIdForRun(runId: string): Promise<string | null> {
+  const apiUrl = getMastraApiUrl();
+  try {
+    const response = await fetch(`${apiUrl}/workflows/trace-by-run/${runId}`);
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.traceId ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export interface WeatherForecast {
   date: string;
   location: string;
@@ -28,6 +40,7 @@ export interface WeatherWorkflowResult {
 export interface ContentWorkflowResult {
   finalCopy: string;
   runId: string;
+  traceId?: string;
 }
 
 interface CreateRunResponse {
@@ -153,7 +166,9 @@ export async function runContentWorkflow(topic: string): Promise<ContentWorkflow
       if (!run.result) {
         throw new Error('Workflow completed but no result found');
       }
-      return { ...run.result, runId };
+      // Resolve traceId from Phoenix after workflow completion
+      const traceId = await getTraceIdForRun(runId);
+      return { ...run.result, runId, traceId: traceId ?? undefined };
     }
 
     if (run.status === 'failed') {

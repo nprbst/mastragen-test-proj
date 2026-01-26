@@ -10,7 +10,9 @@ import {
 } from '@mastra/observability';
 
 import { copywriterAgent, editorAgent, weatherAgent } from './agents';
+import { agentStreamRoute } from './routes/agent-stream';
 import { feedbackRoute } from './routes/feedback';
+import { workflowTraceRoute } from './routes/workflow-trace';
 import { answerRelevancyScorer, weatherAccuracyScorer } from './scorers';
 import { contentWorkflow, weatherWorkflow } from './workflows';
 
@@ -30,7 +32,7 @@ export const mastra = new Mastra({
   workflows: { contentWorkflow, weatherWorkflow },
   scorers: { weatherAccuracyScorer, answerRelevancyScorer },
   server: {
-    apiRoutes: [feedbackRoute],
+    apiRoutes: [feedbackRoute, agentStreamRoute, workflowTraceRoute],
   },
   storage: new LibSQLStore({
     id: 'mastra-storage',
