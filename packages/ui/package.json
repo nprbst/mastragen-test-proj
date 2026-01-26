@@ -9,10 +9,12 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "astro": "^5.0.0",
+    "@assistant-ui/react": "^0.10.0",
     "@astrojs/react": "^4.0.0",
     "@astrojs/tailwind": "^6.0.0",
-    "@assistant-ui/react": "^0.10.0",
+    "@mastra/client-js": "^1.0.1",
+    "@mastra/react": "^0.1.1",
+    "astro": "^5.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "lucide-react": "^0.468.0",
