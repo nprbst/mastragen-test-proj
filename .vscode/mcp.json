@@ -1,10 +1,9 @@
 {
   "servers": {
     "mastra": {
-      "command": "npx",
+      "command": "bunx",
       "args": [
-        "-y",
-        "@mastra/mcp-docs-server@beta"
+        "@mastra/mcp-docs-server@latest"
       ],
       "type": "stdio"
     }
